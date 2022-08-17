@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import React, {useCallback, useRef, useState} from 'react';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import axios from 'axios';
 
 import {RootStackParamList} from '../../App';
 
@@ -23,11 +24,17 @@ const SignIn = ({navigation}: SignInScreenProps) => {
   const onChangePassword = useCallback((text: string) => setPassword(text), []);
   const canGoNext = email && password;
 
-  const onSubmit = useCallback(() => {
+  const onSubmit = useCallback(async () => {
     if (!canGoNext) {
       return Alert.alert('이메일/비밀번호를 입력해주세요');
     }
-    console.log('login');
+    // try {
+    //   await axios.post('/user', {});
+    // } catch (err) {
+        
+    // } finally {
+
+    // }
   }, [canGoNext]);
 
   const toSignUp = useCallback(

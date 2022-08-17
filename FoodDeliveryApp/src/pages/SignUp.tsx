@@ -5,9 +5,12 @@ import {
   Pressable,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useCallback, useRef, useState} from 'react';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import axios, {AxiosError} from 'axios';
+import Config from 'react-native-config';
 
 import {RootStackParamList} from '../../App';
 import DismissKeyboardView from '../components/DismissKeyboardView';
@@ -15,6 +18,7 @@ import DismissKeyboardView from '../components/DismissKeyboardView';
 type SignUpScreenProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 const SignUp = ({navigation}: SignUpScreenProps) => {
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -31,14 +35,30 @@ const SignUp = ({navigation}: SignUpScreenProps) => {
     (text: string) => setPassword(text.trim()),
     [],
   );
-  const canGoNext = email && password;
+  const canGoNext = email && name && password && !loading;
 
-  const onSubmit = useCallback(() => {
+  const onSubmit = useCallback(async () => {
     if (!canGoNext) {
-      return Alert.alert('이메일/비밀번호를 입력해주세요');
+      return Alert.alert('이메일/이름/비밀번호를 입력해주세요');
     }
-    console.log('login');
-  }, [canGoNext]);
+    try {
+      setLoading(true);
+      const response = await axios.post(`${Config.API_URL}user`, {
+        email,
+        name,
+        password,
+      });
+      console.log(response);
+    } catch (err) {
+      const errorResponse = (err as AxiosError).response;
+      console.error(errorResponse);
+      if (errorResponse) {
+        Alert.alert('알림', (errorResponse.data as any).message ?? '');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [canGoNext, email, name, password]);
 
   return (
     <DismissKeyboardView>
@@ -100,7 +120,11 @@ const SignUp = ({navigation}: SignUpScreenProps) => {
           }
           onPress={onSubmit}
           disabled={!canGoNext}>
-          <Text style={styles.loginButtonText}>회원가입</Text>
+          {loading ? (
+            <ActivityIndicator />
+          ) : (
+            <Text style={styles.loginButtonText}>회원가입</Text>
+          )}
         </Pressable>
       </View>
     </DismissKeyboardView>
