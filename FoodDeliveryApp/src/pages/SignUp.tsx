@@ -43,12 +43,13 @@ const SignUp = ({navigation}: SignUpScreenProps) => {
     }
     try {
       setLoading(true);
-      const response = await axios.post(`${Config.API_URL}user`, {
+      const response = await axios.post(`${Config.API_URL_2}user`, {
         email,
         name,
         password,
       });
       console.log(response);
+      navigation.goBack();
     } catch (err) {
       const errorResponse = (err as AxiosError).response;
       console.error(errorResponse);
@@ -58,7 +59,7 @@ const SignUp = ({navigation}: SignUpScreenProps) => {
     } finally {
       setLoading(false);
     }
-  }, [canGoNext, email, name, password]);
+  }, [navigation, canGoNext, email, name, password]);
 
   return (
     <DismissKeyboardView>

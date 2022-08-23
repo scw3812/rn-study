@@ -28,13 +28,11 @@ const SignIn = ({navigation}: SignInScreenProps) => {
     if (!canGoNext) {
       return Alert.alert('이메일/비밀번호를 입력해주세요');
     }
-    // try {
-    //   await axios.post('/user', {});
-    // } catch (err) {
-        
-    // } finally {
-
-    // }
+    try {
+      await axios.post('/user', {});
+    } catch (err) {
+      console.log(err);
+    }
   }, [canGoNext]);
 
   const toSignUp = useCallback(
