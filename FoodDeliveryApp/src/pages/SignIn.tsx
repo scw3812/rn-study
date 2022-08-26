@@ -9,12 +9,17 @@ import {
 import React, {useCallback, useRef, useState} from 'react';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
+import Config from 'react-native-config';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 import {RootStackParamList} from '../../App';
+import userSlice from '../slices/userSlice';
+import {useAppDispatch} from '../store';
 
 type SignInScreenProps = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
 
 const SignIn = ({navigation}: SignInScreenProps) => {
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const emailRef = useRef<TextInput | null>(null);
@@ -29,11 +34,24 @@ const SignIn = ({navigation}: SignInScreenProps) => {
       return Alert.alert('이메일/비밀번호를 입력해주세요');
     }
     try {
-      await axios.post('/user', {});
+      const response = await axios.post(`${Config.API_URL_2}login`, {
+        email,
+        password,
+      });
+      const data = response.data.data;
+      dispatch(
+        userSlice.actions.setUser({
+          name: data.name,
+          email: data.email,
+          accessToken: data.accessToken,
+        }),
+      );
+
+      await EncryptedStorage.setItem('refreshToken', data.refreshToken);
     } catch (err) {
       console.log(err);
     }
-  }, [canGoNext]);
+  }, [canGoNext, email, password, dispatch]);
 
   const toSignUp = useCallback(
     () => navigation.navigate('SignUp'),
