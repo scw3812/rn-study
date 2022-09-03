@@ -13,6 +13,7 @@ import SignUp from './src/pages/SignUp';
 import type {RootState} from './src/store/reducer';
 import userSlice from './src/slices/userSlice';
 import {useAppDispatch} from './src/store';
+import useSocket from './src/hooks/useSocket';
 
 export type LoggedInParamList = {
   Orders: undefined;
@@ -32,6 +33,29 @@ const Stack = createNativeStackNavigator();
 const App = () => {
   const isLoggedIn = useSelector((state: RootState) => !!state.user.email);
   const dispatch = useAppDispatch();
+  const [socket, disconnect] = useSocket();
+
+  useEffect(() => {
+    const helloCallback = (data: any) => console.log(data);
+    if (socket && isLoggedIn) {
+      console.log(socket);
+      socket.emit('login', 'hello');
+      socket.on('hello', helloCallback);
+    }
+
+    return () => {
+      if (socket) {
+        socket.off('hello', helloCallback);
+      }
+    };
+  }, [isLoggedIn, socket]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      console.log('isLoggedIn', isLoggedIn);
+      disconnect();
+    }
+  }, [isLoggedIn, disconnect]);
 
   const autoLogin = useCallback(async () => {
     const refreshToken = await EncryptedStorage.getItem('refreshToken');
