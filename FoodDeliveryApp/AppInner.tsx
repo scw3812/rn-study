@@ -17,6 +17,7 @@ import userSlice from './src/slices/userSlice';
 import {useAppDispatch} from './src/store';
 import useSocket from './src/hooks/useSocket';
 import Config from 'react-native-config';
+import orderSlice from './src/slices/orderSlice';
 
 export type LoggedInParamList = {
   Orders: undefined;
@@ -39,7 +40,7 @@ const App = () => {
   const [socket, disconnect] = useSocket();
 
   useEffect(() => {
-    const callback = (data: any) => console.log(data);
+    const callback = (data: any) => dispatch(orderSlice.actions.addOrder(data));
     if (socket && isLoggedIn) {
       socket.emit('acceptOrder', 'hello');
       socket.on('order', callback);
@@ -50,7 +51,7 @@ const App = () => {
         socket.off('order', callback);
       }
     };
-  }, [isLoggedIn, socket]);
+  }, [isLoggedIn, socket, dispatch]);
 
   useEffect(() => {
     if (!isLoggedIn) {
