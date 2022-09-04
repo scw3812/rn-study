@@ -1,9 +1,11 @@
 import React, {useEffect, useCallback} from 'react';
+import {Alert} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useSelector} from 'react-redux';
 import EncryptedStorage from 'react-native-encrypted-storage';
+import axios, {type AxiosError} from 'axios';
 
 import Orders from './src/pages/Orders';
 import Settings from './src/pages/Settings';
@@ -14,6 +16,7 @@ import type {RootState} from './src/store/reducer';
 import userSlice from './src/slices/userSlice';
 import {useAppDispatch} from './src/store';
 import useSocket from './src/hooks/useSocket';
+import Config from 'react-native-config';
 
 export type LoggedInParamList = {
   Orders: undefined;
@@ -36,16 +39,15 @@ const App = () => {
   const [socket, disconnect] = useSocket();
 
   useEffect(() => {
-    const helloCallback = (data: any) => console.log(data);
+    const callback = (data: any) => console.log(data);
     if (socket && isLoggedIn) {
-      console.log(socket);
-      socket.emit('login', 'hello');
-      socket.on('hello', helloCallback);
+      socket.emit('acceptOrder', 'hello');
+      socket.on('order', callback);
     }
 
     return () => {
       if (socket) {
-        socket.off('hello', helloCallback);
+        socket.off('order', callback);
       }
     };
   }, [isLoggedIn, socket]);
@@ -58,15 +60,34 @@ const App = () => {
   }, [isLoggedIn, disconnect]);
 
   const autoLogin = useCallback(async () => {
-    const refreshToken = await EncryptedStorage.getItem('refreshToken');
-    if (refreshToken) {
+    try {
+      const refreshToken = await EncryptedStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        return;
+      }
+      const response = await axios.post(
+        `${Config.API_URL_2}/refreshToken`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${refreshToken}`,
+          },
+        },
+      );
       dispatch(
         userSlice.actions.setUser({
-          name: '',
-          email: '',
-          accessToken: '',
+          name: response.data.data.name,
+          email: response.data.data.email,
+          accessToken: response.data.data.accessToken,
         }),
       );
+    } catch (error) {
+      console.error(error);
+      const response = (error as AxiosError).response;
+      const data = response?.data as any;
+      if (data.code === 'expired') {
+        Alert.alert('알림', '다시 로그인 해주세요');
+      }
     }
   }, [dispatch]);
 
