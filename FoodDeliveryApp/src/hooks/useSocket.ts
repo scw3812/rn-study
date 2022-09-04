@@ -11,7 +11,7 @@ const useSocket = (): [Socket | undefined, () => void] => {
     }
   }, []);
   if (!socket) {
-    socket = io(Config.API_URL, {
+    socket = io(Config.API_URL_2, {
       transports: ['websocket'],
       // path: '/socket-io',
     });

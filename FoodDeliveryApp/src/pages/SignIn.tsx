@@ -34,7 +34,7 @@ const SignIn = ({navigation}: SignInScreenProps) => {
       return Alert.alert('이메일/비밀번호를 입력해주세요');
     }
     try {
-      const response = await axios.post(`${Config.API_URL_2}login`, {
+      const response = await axios.post(`${Config.API_URL_2}/login`, {
         email,
         password,
       });
@@ -98,8 +98,8 @@ const SignIn = ({navigation}: SignInScreenProps) => {
         <Pressable
           style={
             !canGoNext
-              ? styles.logdinButton
-              : [styles.logdinButton, styles.loginButtonActive]
+              ? styles.loginButton
+              : [styles.loginButton, styles.loginButtonActive]
           }
           onPress={onSubmit}
           disabled={!canGoNext}>
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
   },
-  logdinButton: {
+  loginButton: {
     backgroundColor: 'gray',
     paddingHorizontal: 20,
     paddingVertical: 10,
