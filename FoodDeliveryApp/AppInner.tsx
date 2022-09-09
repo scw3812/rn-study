@@ -40,6 +40,13 @@ const App = () => {
   const [socket, disconnect] = useSocket();
 
   useEffect(() => {
+    axios.interceptors.response.use(
+      () => {},
+      error => console.error(error),
+    );
+  }, []);
+
+  useEffect(() => {
     const callback = (data: any) => dispatch(orderSlice.actions.addOrder(data));
     if (socket && isLoggedIn) {
       socket.emit('acceptOrder', 'hello');
