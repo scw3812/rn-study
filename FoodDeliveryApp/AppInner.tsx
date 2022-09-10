@@ -41,10 +41,31 @@ const App = () => {
 
   useEffect(() => {
     axios.interceptors.response.use(
-      () => {},
-      error => console.error(error),
+      response => response,
+      async error => {
+        const {
+          config,
+          response: {status},
+        } = error;
+        if (status === 419) {
+          if (error.response.data.code === 'expired') {
+            const originalRequest = config;
+            const refreshToken = await EncryptedStorage.getItem('refreshToken');
+            const {data} = await axios.post(
+              `${Config.API_URL_2}/refreshToken`,
+              {},
+              {headers: {Authorization: `Bearer ${refreshToken}`}},
+            );
+            dispatch(userSlice.actions.setAccessToken(data.data.accessToken));
+            originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
+
+            return axios(originalRequest);
+          }
+        }
+        return Promise.reject(error);
+      },
     );
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     const callback = (data: any) => dispatch(orderSlice.actions.addOrder(data));
